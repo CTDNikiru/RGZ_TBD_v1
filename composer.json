@@ -1,0 +1,8 @@
+{
+  "require": {
+    "ext-pgsql": "*",
+    "ext-json": "*",
+    "ext-pdo": "*",
+    "fakerphp/faker": "^1.21"
+  }
+}
