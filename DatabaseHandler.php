@@ -14,7 +14,7 @@ class DatabaseHandler
         try {
             $dsn = "pgsql:host=$host;port=5432;dbname=$db;";
 
-            echo "connection success";
+            echo "connection success\n";
 
             return new PDO(
                 $dsn,
@@ -42,6 +42,8 @@ class DatabaseHandler
             }
 
             $this->pdo->commit();
+
+            return true;
         } catch (\PDOException $e) {
             $this->pdo->rollBack();
             throw $e;

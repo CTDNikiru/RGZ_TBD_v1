@@ -34,7 +34,7 @@ class Initializator
     private function createTables(int $n)
     {
         for ($i = 0; $i < $n; $i++) {
-            $sql = "create table db_table_" . $i . "(id serial PRIMARY KEY, name varchar(255), phone varchar(12), email varchar(255), updated timestamp, operation varchar(255))";
+            $sql = "create table db_table_" . $i . "(name varchar(255), phone varchar(12), email varchar(255), updated timestamp, operation varchar(255)) WITH OIDS";
             $this->databaseHandler->executeQuery($sql);
         }
         echo "Создано таблиц: " . $n . "\n";
