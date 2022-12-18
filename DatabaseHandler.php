@@ -31,14 +31,10 @@ class DatabaseHandler
     public function executeTransaction(array $sqlCommands, array $values)
     {
         try {
-            if (count($sqlCommands) != count($values)) {
-                throw new \Exception("Необходимо чтоб команды и данные совпадали, если команда без данных - поместить пустой массив");
-            }
-
             $this->pdo->beginTransaction();
 
             for ($i = 0; $i < count($sqlCommands); $i++) {
-                $this->pdo->prepare($sqlCommands[$i])->execute($values[$i]);
+                $this->pdo->prepare($sqlCommands[$i])->execute($values[$i] ?? null);
             }
 
             $this->pdo->commit();
@@ -54,7 +50,7 @@ class DatabaseHandler
         try {
             $query = $this->pdo->prepare($sql);
             $query->execute($value);
-            return $query->fetchAll();
+            return $query->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             throw $e;
         }

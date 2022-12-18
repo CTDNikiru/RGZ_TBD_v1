@@ -18,10 +18,11 @@ class DatabaseWorker
         //2 - DELETE
         //log: dbID operation time command
         $action = rand(0, 2);
-        $tableId = rand(0, $n-1);
+        //Нулевая - центральная БД не изменяется
+        $tableId = rand(0, $n - 1);
         $operation = ["INSERT", "UPDATE", "DELETE"];
 
-        switch ($action){
+        switch ($action) {
             case 0:
                 $this->actionInsert($tableId);
                 break;
@@ -34,8 +35,13 @@ class DatabaseWorker
         }
     }
 
-    private function actionUpdate($tableId){
+    private function actionUpdate($tableId)
+    {
         $minOid = $this->getMinOid($tableId);
+
+        $sql = "select * from db_table_" . $tableId . " where oid = $minOid";
+        $pastInfo = $this->databaseHandler->executeQuery($sql);
+
 
         $faker = Faker\Factory::create();
         $name = $faker->firstName();
@@ -52,14 +58,27 @@ class DatabaseWorker
             operation='$operation'
             where oid=$minOid
         ";
-        echo "action update\n";
+        $arrToSave = [
+            "pastName" => $pastInfo["name"],
+            "pastPhone" => $pastInfo["phone"],
+            "pastEmail" => $pastInfo["email"],
+            "name" => $name,
+            "phone" => $phone,
+            "email" => $email
+        ];
+        $log = $tableId . "|" . "update" . "|" . date_create_immutable()->format("Y-m-d H:i:s") . "|" . json_encode($arrToSave) . "\n";
+        file_put_contents("log.txt", $log, FILE_APPEND);
         return $this->databaseHandler->executeTransaction([$sql], [[]]);
     }
 
-    private function actionDelete($tableId){
+    private function actionDelete($tableId)
+    {
         $maxOid = $this->getMaxOid($tableId);
+        $sql = "select * from db_table_" . $tableId . " where oid=$maxOid";
+        $info = $this->databaseHandler->executeQuery($sql, []);
         $sql = "delete from db_table_" . $tableId . " where oid=$maxOid";
-        echo "action delete\n";
+        $log = $tableId . "|" . "delete" . "|" . date_create_immutable()->format("Y-m-d H:i:s") . "|" . json_encode($info) . "\n";
+        file_put_contents("log.txt", $log, FILE_APPEND);
         return $this->databaseHandler->executeTransaction([$sql], [[]]);
     }
 
@@ -74,8 +93,10 @@ class DatabaseWorker
 
         $sql = "insert into db_table_" . $tableId . "(name, phone, email, updated, operation) 
         values ('$name', '$phone', '$email', $updated, '$operation')";
+        $arrToSave = ["name" => $name, "phone" => $phone, "email" => $email];
+        $log = $tableId . "|" . "insert" . "|" . date_create_immutable()->format("Y-m-d H:i:s") . "|" . json_encode($arrToSave) . "\n";
+        file_put_contents("log.txt", $log, FILE_APPEND);
 
-        echo "action insert\n";
         return $this->databaseHandler->executeTransaction([$sql], [[]]);
     }
 
@@ -86,7 +107,7 @@ class DatabaseWorker
         if (!isset($result) || count($result) == 0) {
             throw new \Exception("Нет записей в таблице");
         }
-        return $result[0][0];
+        return $result['min'];
     }
 
     private function getMaxOid($tableId)
@@ -96,6 +117,6 @@ class DatabaseWorker
         if (!isset($result) || count($result) == 0) {
             throw new \Exception("Нет записей в таблице");
         }
-        return $result[0][0];
+        return $result['max'];
     }
 }

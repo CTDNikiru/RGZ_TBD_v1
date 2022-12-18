@@ -16,9 +16,14 @@ class Initializator
     //Инициализирует чистую базу данных
     public function initialize()
     {
+        $this->deleteLogs();
         $this->deleteTables($this->tableCount);
         $this->createTables($this->tableCount);
         $this->insertValues($this->tableCount);
+    }
+
+    private function deleteLogs(){
+        file_put_contents("log.txt", "");
     }
 
     private function deleteTables(int $n)
